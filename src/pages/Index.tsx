@@ -2,15 +2,27 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tv, Wifi, Shield, Clock } from "lucide-react";
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
   const { toast } = useToast();
 
   const handlePurchase = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address to receive your IPTV credentials.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -18,7 +30,8 @@ const Index = () => {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
           amount: 999, // $9.99 in cents
-          currency: 'usd' 
+          currency: 'usd',
+          email: email
         }
       });
 
@@ -130,6 +143,18 @@ const Index = () => {
                   <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
                   Email support
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email to receive credentials"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
               
               <Button 

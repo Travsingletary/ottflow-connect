@@ -40,10 +40,14 @@ serve(async (req) => {
       logStep("User authenticated", { userId: user?.id, email: user?.email });
     }
 
-    // Parse request body for custom pricing if provided
-    const { amount = 999, currency = "usd" } = await req.json().catch(() => ({})); // Default $9.99
+    // Parse request body for custom pricing and email if provided
+    const { amount = 999, currency = "usd", email } = await req.json().catch(() => ({})); // Default $9.99
 
-    const customerEmail = user?.email || "guest@example.com";
+    const customerEmail = user?.email || email || "guest@example.com";
+    
+    if (!user && !email) {
+      throw new Error("Email is required for guest checkout");
+    }
     
     // Check if Stripe customer exists
     const customers = await stripe.customers.list({ 
