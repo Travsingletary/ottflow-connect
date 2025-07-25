@@ -33,9 +33,15 @@ serve(async (req) => {
     const signature = req.headers.get("stripe-signature");
     const body = await req.text();
     
-    // In production, you should verify the webhook signature
-    // For now, we'll parse the event directly
-    const event = JSON.parse(body);
+    // Verify the webhook signature for security
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(body, signature!, "whsec_zvOErMv6qdrBK9038LdpceRkGBkZZF3U");
+      logStep("Webhook signature verified");
+    } catch (err) {
+      logStep("Webhook signature verification failed", { error: err });
+      return new Response(`Webhook Error: ${err}`, { status: 400 });
+    }
     
     logStep("Event type", { type: event.type });
 
