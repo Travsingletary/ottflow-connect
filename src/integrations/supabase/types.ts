@@ -14,7 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string
+          currency: string
+          customer_email: string
+          id: string
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_email: string
+          id?: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_email?: string
+          id?: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          connections_count: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          m3u_link: string
+          megaott_password: string
+          megaott_username: string
+          package_name: string
+          status: string
+          stripe_payment_intent_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connections_count?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          m3u_link: string
+          megaott_password: string
+          megaott_username: string
+          package_name?: string
+          status?: string
+          stripe_payment_intent_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connections_count?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          m3u_link?: string
+          megaott_password?: string
+          megaott_username?: string
+          package_name?: string
+          status?: string
+          stripe_payment_intent_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
