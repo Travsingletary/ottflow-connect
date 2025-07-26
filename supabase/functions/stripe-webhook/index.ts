@@ -144,6 +144,12 @@ serve(async (req) => {
           body: emailPayload
         });
 
+        console.log("Email response:", emailResponse);
+        
+        if (emailResponse.error) {
+          console.error("Failed to send confirmation email:", emailResponse.error);
+        }
+
         logStep("DEBUG: send-confirmation-email function response", { 
           success: !emailResponse.error,
           data: emailResponse.data,
