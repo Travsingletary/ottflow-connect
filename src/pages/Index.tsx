@@ -65,7 +65,7 @@ const Index = () => {
         <div className="text-center mb-16">
           <div className="flex justify-center items-center mb-6">
             <img 
-              src="/lovable-uploads/3a9c1881-71f8-45e3-bca9-c94c8a18e04c.png" 
+              src="/lovable-uploads/14257d3a-27ef-4280-a656-94871331978b.png" 
               alt="Bootleg Buddy Logo" 
               className="h-48 w-auto mr-4"
             />
