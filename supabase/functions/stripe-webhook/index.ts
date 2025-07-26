@@ -122,114 +122,41 @@ serve(async (req) => {
         throw new Error("Failed to store subscription details");
       }
 
-      // Send confirmation email with IPTV credentials
-      logStep("Starting email sending process");
+      // Call send-confirmation-email function
+      logStep("Starting email sending process via send-confirmation-email function");
       
       try {
-        const resendApiKey = Deno.env.get("RESEND_API_KEY");
-        logStep("DEBUG: Resend API Key check", { 
-          hasApiKey: !!resendApiKey,
-          keyLength: resendApiKey?.length || 0,
-          keyPrefix: resendApiKey ? resendApiKey.substring(0, 8) + "..." : "none"
-        });
-
-        if (!resendApiKey) {
-          throw new Error("RESEND_API_KEY environment variable is not set");
-        }
-
-        const resend = new Resend(resendApiKey);
-        const recipientEmail = session.customer_details?.email || session.metadata?.email;
+        const recipientEmail = session.customer_details?.email || session.metadata?.email || "trav.singletary@gmail.com";
         
-        // TEMPORARY: Hardcoded test email
-        const testEmail = "trav.singletary@gmail.com";
-        
-        logStep("DEBUG: Email details before send", {
-          originalRecipient: recipientEmail,
-          testRecipient: testEmail,
+        const emailPayload = {
+          email: recipientEmail,
           username: megaottData.username,
-          password: megaottData.password?.substring(0, 4) + "..." || "none",
-          dnsLink: megaottData.dns_link,
-          portalLink: megaottData.portal_link,
-          hasAllData: !!(megaottData.username && megaottData.password && megaottData.dns_link)
-        });
-
-        const emailData = {
-          from: "onboarding@resend.dev", // Using verified Resend domain
-          to: [testEmail], // TEMPORARY: Using hardcoded test email
-          subject: "TEST: Your IPTV Subscription is Ready!",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #333; text-align: center;">TEST EMAIL - Your IPTV Subscription is Active!</h1>
-              
-              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h2 style="color: #495057; margin-top: 0;">Login Credentials:</h2>
-                <p><strong>Username:</strong> ${megaottData.username}</p>
-                <p><strong>Password:</strong> ${megaottData.password}</p>
-              </div>
-
-              <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h2 style="color: #1976d2; margin-top: 0;">Access Links:</h2>
-                <p><strong>M3U Playlist:</strong><br>
-                <a href="${megaottData.dns_link}" style="color: #1976d2; word-break: break-all;">${megaottData.dns_link}</a></p>
-                
-                ${megaottData.portal_link ? `
-                <p><strong>Portal Link:</strong><br>
-                <a href="${megaottData.portal_link}" style="color: #1976d2; word-break: break-all;">${megaottData.portal_link}</a></p>
-                ` : ''}
-              </div>
-
-              <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="color: #856404; margin-top: 0;">Getting Started:</h3>
-                <ol style="color: #856404;">
-                  <li>Download an IPTV player app (VLC, IPTV Smarters, etc.)</li>
-                  <li>Use the M3U link above to load your channels</li>
-                  <li>Use your username and password when prompted</li>
-                  <li>Enjoy your premium IPTV experience!</li>
-                </ol>
-              </div>
-
-              <p style="text-align: center; color: #666; margin-top: 30px;">
-                This is a TEST EMAIL to debug Resend integration.<br>
-                Session ID: ${session.id}
-              </p>
-            </div>
-          `,
+          password: megaottData.password,
+          m3u_link: megaottData.dns_link,
+          package_name: "Premium IPTV Package",
+          expires_at: megaottData.expiring_at
         };
 
-        logStep("DEBUG: About to call Resend API", { emailData: { 
-          from: emailData.from, 
-          to: emailData.to, 
-          subject: emailData.subject,
-          htmlLength: emailData.html.length 
-        }});
+        logStep("DEBUG: Email payload being sent to send-confirmation-email", emailPayload);
 
-        const emailResponse = await resend.emails.send(emailData);
-
-        logStep("DEBUG: Resend API call completed", { 
-          success: !!emailResponse.data,
-          hasError: !!emailResponse.error,
-          responseKeys: Object.keys(emailResponse)
+        const emailResponse = await supabase.functions.invoke('send-confirmation-email', {
+          body: emailPayload
         });
 
-        // Log the full response regardless of success/error
-        logStep("DEBUG: Full Resend API response", { 
-          fullResponse: emailResponse,
+        logStep("DEBUG: send-confirmation-email function response", { 
+          success: !emailResponse.error,
           data: emailResponse.data,
           error: emailResponse.error
         });
 
         if (emailResponse.error) {
-          logStep("Resend API error details", {
-            error: emailResponse.error,
-            errorMessage: emailResponse.error?.message,
-            errorName: emailResponse.error?.name
-          });
-          throw new Error(`Resend error: ${JSON.stringify(emailResponse.error)}`);
+          logStep("send-confirmation-email function error", emailResponse.error);
+          throw new Error(`Email function error: ${JSON.stringify(emailResponse.error)}`);
         } else {
-          logStep("Confirmation email sent successfully", { 
-            messageId: emailResponse.data?.id,
-            recipient: testEmail,
-            success: true
+          logStep("Confirmation email sent successfully via function", { 
+            recipient: recipientEmail,
+            success: true,
+            response: emailResponse.data
           });
         }
       } catch (emailError) {
