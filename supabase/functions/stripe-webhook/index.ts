@@ -49,8 +49,9 @@ serve(async (req) => {
       return new Response(`Webhook Error: ${err}`, { status: 400 });
     }
     
-    logStep("Event type", { type: event.type });
+    logStep("Event type received", { type: event.type });
 
+    // Handle both checkout.session.completed and payment_intent.succeeded for testing
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       logStep("Processing checkout session", { sessionId: session.id });
@@ -241,8 +242,97 @@ serve(async (req) => {
       }
 
       logStep("Email sending process completed");
+    } else if (event.type === "payment_intent.succeeded") {
+      // Handle payment_intent.succeeded for testing
+      logStep("Processing payment_intent.succeeded event for testing");
+      
+      const paymentIntent = event.data.object;
+      logStep("Payment intent details", { 
+        id: paymentIntent.id,
+        amount: paymentIntent.amount,
+        status: paymentIntent.status
+      });
 
-      logStep("Workflow completed successfully");
+      // For testing purposes, create a mock IPTV subscription
+      const mockCredentials = {
+        username: `test_user_${Date.now()}`,
+        password: `test_pass_${Math.random().toString(36).substr(2, 8)}`,
+        dns_link: "http://test.megaott.net/playlist.m3u8",
+        portal_link: "http://test.megaott.net/portal"
+      };
+
+      logStep("Mock credentials created for testing", mockCredentials);
+
+      // Send test email
+      try {
+        const resendApiKey = Deno.env.get("RESEND_API_KEY");
+        logStep("DEBUG: Resend API Key check for payment_intent test", { 
+          hasApiKey: !!resendApiKey,
+          keyLength: resendApiKey?.length || 0,
+          keyPrefix: resendApiKey ? resendApiKey.substring(0, 8) + "..." : "none"
+        });
+
+        if (!resendApiKey) {
+          throw new Error("RESEND_API_KEY environment variable is not set");
+        }
+
+        const resend = new Resend(resendApiKey);
+        const testEmail = "trav.singletary@gmail.com";
+        
+        logStep("DEBUG: About to send test email for payment_intent", {
+          recipient: testEmail,
+          credentials: mockCredentials
+        });
+
+        const emailResponse = await resend.emails.send({
+          from: "onboarding@resend.dev",
+          to: [testEmail],
+          subject: "TEST: Payment Intent Succeeded - IPTV Test",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #333; text-align: center;">TEST: Payment Intent Succeeded</h1>
+              
+              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h2 style="color: #495057; margin-top: 0;">Test IPTV Credentials:</h2>
+                <p><strong>Username:</strong> ${mockCredentials.username}</p>
+                <p><strong>Password:</strong> ${mockCredentials.password}</p>
+                <p><strong>M3U Link:</strong> ${mockCredentials.dns_link}</p>
+                <p><strong>Portal Link:</strong> ${mockCredentials.portal_link}</p>
+              </div>
+
+              <p style="text-align: center; color: #666; margin-top: 30px;">
+                This is a TEST EMAIL for payment_intent.succeeded event.<br>
+                Payment Intent ID: ${paymentIntent.id}
+              </p>
+            </div>
+          `,
+        });
+
+        logStep("DEBUG: Resend API response for payment_intent test", { 
+          success: !!emailResponse.data,
+          messageId: emailResponse.data?.id,
+          error: emailResponse.error,
+          fullResponse: emailResponse
+        });
+
+        if (emailResponse.error) {
+          logStep("Resend API error in payment_intent test", emailResponse.error);
+        } else {
+          logStep("Test email sent successfully for payment_intent", { 
+            messageId: emailResponse.data?.id,
+            recipient: testEmail
+          });
+        }
+      } catch (emailError) {
+        logStep("Email sending error in payment_intent test", { 
+          error: emailError,
+          message: emailError instanceof Error ? emailError.message : String(emailError)
+        });
+      }
+
+      logStep("Payment intent test processing completed");
+    } else {
+      logStep("Unhandled event type", { type: event.type });
     }
 
     return new Response(JSON.stringify({ received: true }), {
