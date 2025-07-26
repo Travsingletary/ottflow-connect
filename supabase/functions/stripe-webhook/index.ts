@@ -137,6 +137,7 @@ serve(async (req) => {
           expires_at: megaottData.expiring_at
         };
 
+        console.log("Sending confirmation email with payload:", emailPayload);
         logStep("DEBUG: Email payload being sent to send-confirmation-email", emailPayload);
 
         const emailResponse = await supabase.functions.invoke('send-confirmation-email', {
