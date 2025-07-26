@@ -8,44 +8,44 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Bootleg Buddy vintage theme - warm browns and creams */
-    --background: 45 45% 96%;
-    --foreground: 25 25% 15%;
+    /* Bootleg Buddy golden theme to match the logo */
+    --background: 0 0% 2%;
+    --foreground: 45 95% 85%;
 
-    --card: 45 35% 98%;
-    --card-foreground: 25 25% 15%;
+    --card: 0 0% 8%;
+    --card-foreground: 45 85% 90%;
 
-    --popover: 45 35% 98%;
-    --popover-foreground: 25 25% 15%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 45 85% 90%;
 
-    /* Primary brown from logo */
-    --primary: 25 45% 25%;
-    --primary-foreground: 45 35% 98%;
+    /* Rich golden primary from logo */
+    --primary: 45 85% 55%;
+    --primary-foreground: 0 0% 5%;
 
     /* Warm secondary tones */
-    --secondary: 35 35% 85%;
-    --secondary-foreground: 25 35% 20%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 45 75% 80%;
 
-    --muted: 40 25% 90%;
-    --muted-foreground: 25 15% 45%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 45 20% 65%;
 
-    /* Accent vintage gold */
-    --accent: 45 65% 75%;
-    --accent-foreground: 25 35% 20%;
+    /* Accent golden highlight */
+    --accent: 45 95% 65%;
+    --accent-foreground: 0 0% 5%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 45 35% 98%;
+    --destructive-foreground: 45 85% 90%;
 
-    --border: 35 20% 85%;
-    --input: 35 20% 92%;
-    --ring: 25 45% 25%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 45 85% 55%;
 
     --radius: 0.75rem;
     
-    /* Custom Bootleg Buddy gradients */
-    --gradient-vintage: linear-gradient(135deg, hsl(var(--primary)), hsl(25 55% 35%));
-    --gradient-warm: linear-gradient(180deg, hsl(var(--background)), hsl(40 30% 88%));
-    --shadow-warm: 0 10px 30px -10px hsl(25 35% 25% / 0.3);
+    /* Custom golden gradients */
+    --gradient-vintage: linear-gradient(135deg, hsl(45 85% 55%), hsl(45 75% 45%));
+    --gradient-warm: linear-gradient(180deg, hsl(0 0% 2%), hsl(0 0% 8%));
+    --shadow-warm: 0 10px 30px -10px hsl(45 85% 55% / 0.3);
 
     --sidebar-background: 0 0% 98%;
 
@@ -65,34 +65,34 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark vintage theme */
-    --background: 25 15% 8%;
-    --foreground: 45 25% 90%;
+    /* Dark golden theme */
+    --background: 0 0% 2%;
+    --foreground: 45 95% 85%;
 
-    --card: 25 20% 12%;
-    --card-foreground: 45 25% 90%;
+    --card: 0 0% 8%;
+    --card-foreground: 45 85% 90%;
 
-    --popover: 25 20% 12%;
-    --popover-foreground: 45 25% 90%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 45 85% 90%;
 
-    --primary: 45 55% 70%;
-    --primary-foreground: 25 25% 15%;
+    --primary: 45 85% 55%;
+    --primary-foreground: 0 0% 5%;
 
-    --secondary: 25 15% 18%;
-    --secondary-foreground: 45 25% 85%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 45 75% 80%;
 
-    --muted: 25 10% 20%;
-    --muted-foreground: 35 10% 60%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 45 20% 65%;
 
-    --accent: 35 45% 55%;
-    --accent-foreground: 25 25% 15%;
+    --accent: 45 95% 65%;
+    --accent-foreground: 0 0% 5%;
 
     --destructive: 0 65% 50%;
-    --destructive-foreground: 45 25% 90%;
+    --destructive-foreground: 45 85% 90%;
 
-    --border: 25 15% 22%;
-    --input: 25 15% 22%;
-    --ring: 45 55% 70%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 45 85% 55%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
