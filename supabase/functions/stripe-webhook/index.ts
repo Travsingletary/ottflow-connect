@@ -122,12 +122,19 @@ serve(async (req) => {
       }
 
       // Send confirmation email with IPTV credentials
+      logStep("Starting email sending process");
+      
       try {
         const resendApiKey = Deno.env.get("RESEND_API_KEY");
         logStep("DEBUG: Resend API Key check", { 
           hasApiKey: !!resendApiKey,
-          keyLength: resendApiKey?.length || 0 
+          keyLength: resendApiKey?.length || 0,
+          keyPrefix: resendApiKey ? resendApiKey.substring(0, 8) + "..." : "none"
         });
+
+        if (!resendApiKey) {
+          throw new Error("RESEND_API_KEY environment variable is not set");
+        }
 
         const resend = new Resend(resendApiKey);
         const recipientEmail = session.customer_details?.email || session.metadata?.email;
@@ -139,13 +146,14 @@ serve(async (req) => {
           originalRecipient: recipientEmail,
           testRecipient: testEmail,
           username: megaottData.username,
-          password: megaottData.password,
+          password: megaottData.password?.substring(0, 4) + "..." || "none",
           dnsLink: megaottData.dns_link,
-          portalLink: megaottData.portal_link
+          portalLink: megaottData.portal_link,
+          hasAllData: !!(megaottData.username && megaottData.password && megaottData.dns_link)
         });
 
-        const emailResponse = await resend.emails.send({
-          from: "onboarding@resend.dev",
+        const emailData = {
+          from: "onboarding@resend.dev", // Using verified Resend domain
           to: [testEmail], // TEMPORARY: Using hardcoded test email
           subject: "TEST: Your IPTV Subscription is Ready!",
           html: `
@@ -180,35 +188,59 @@ serve(async (req) => {
               </div>
 
               <p style="text-align: center; color: #666; margin-top: 30px;">
-                This is a TEST EMAIL to debug Resend integration.
+                This is a TEST EMAIL to debug Resend integration.<br>
+                Session ID: ${session.id}
               </p>
             </div>
           `,
+        };
+
+        logStep("DEBUG: About to call Resend API", { emailData: { 
+          from: emailData.from, 
+          to: emailData.to, 
+          subject: emailData.subject,
+          htmlLength: emailData.html.length 
+        }});
+
+        const emailResponse = await resend.emails.send(emailData);
+
+        logStep("DEBUG: Resend API call completed", { 
+          success: !!emailResponse.data,
+          hasError: !!emailResponse.error,
+          responseKeys: Object.keys(emailResponse)
         });
 
-        logStep("DEBUG: Resend API response", { 
-          success: emailResponse.data ? true : false,
-          messageId: emailResponse.data?.id,
-          error: emailResponse.error,
-          fullResponse: emailResponse
+        // Log the full response regardless of success/error
+        logStep("DEBUG: Full Resend API response", { 
+          fullResponse: emailResponse,
+          data: emailResponse.data,
+          error: emailResponse.error
         });
 
         if (emailResponse.error) {
-          logStep("Resend API error", emailResponse.error);
+          logStep("Resend API error details", {
+            error: emailResponse.error,
+            errorMessage: emailResponse.error?.message,
+            errorName: emailResponse.error?.name
+          });
           throw new Error(`Resend error: ${JSON.stringify(emailResponse.error)}`);
         } else {
           logStep("Confirmation email sent successfully", { 
             messageId: emailResponse.data?.id,
-            recipient: testEmail
+            recipient: testEmail,
+            success: true
           });
         }
       } catch (emailError) {
-        logStep("Email sending error", { 
+        logStep("Email sending error caught", { 
           error: emailError,
-          message: emailError instanceof Error ? emailError.message : String(emailError)
+          message: emailError instanceof Error ? emailError.message : String(emailError),
+          stack: emailError instanceof Error ? emailError.stack : undefined
         });
         // Don't throw error - subscription is still created successfully
       }
+
+      logStep("Email sending process completed");
 
       logStep("Workflow completed successfully");
     }
