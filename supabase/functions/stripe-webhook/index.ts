@@ -18,7 +18,11 @@ serve(async (req) => {
   }
 
   try {
-    logStep("Webhook received");
+    logStep("Webhook received", { 
+      method: req.method, 
+      url: req.url,
+      headers: Object.fromEntries(req.headers.entries())
+    });
     
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
