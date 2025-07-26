@@ -67,7 +67,7 @@ const Index = () => {
             <img 
               src="/lovable-uploads/3a9c1881-71f8-45e3-bca9-c94c8a18e04c.png" 
               alt="Bootleg Buddy Logo" 
-              className="h-24 w-auto mr-4"
+              className="h-48 w-auto mr-4"
             />
           </div>
           <h1 className="text-5xl font-bold text-primary mb-4 font-serif">
