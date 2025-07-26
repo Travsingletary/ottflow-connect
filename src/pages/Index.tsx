@@ -70,8 +70,8 @@ const Index = () => {
               className="h-48 w-auto mr-4"
             />
           </div>
-          <h1 className="text-5xl font-bold text-primary mb-4 font-serif">
-            Bootleg Buddy IPTV
+          <h1 className="text-6xl font-bold text-primary mb-4 font-bebas uppercase tracking-wider">
+            BOOTLEG BUDDY IPTV
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Your trusted buddy for premium IPTV streaming! Get instant access to thousands of channels with old-school reliability and modern convenience.
@@ -83,7 +83,7 @@ const Index = () => {
           <Card className="text-center border-2 border-accent/20 shadow-lg hover:shadow-xl transition-all duration-300" style={{ boxShadow: 'var(--shadow-warm)' }}>
             <CardContent className="pt-6">
               <Tv className="h-12 w-12 mx-auto mb-4 text-primary" />
-              <h3 className="font-semibold mb-2 text-primary">Buddy's Channels</h3>
+              <h3 className="font-semibold mb-2 text-primary font-bebas uppercase tracking-wide text-lg">BUDDY'S CHANNELS</h3>
               <p className="text-sm text-muted-foreground">Your buddy's got thousands of live TV channels from around the world</p>
             </CardContent>
           </Card>
@@ -91,7 +91,7 @@ const Index = () => {
           <Card className="text-center border-2 border-accent/20 shadow-lg hover:shadow-xl transition-all duration-300" style={{ boxShadow: 'var(--shadow-warm)' }}>
             <CardContent className="pt-6">
               <Wifi className="h-12 w-12 mx-auto mb-4 text-primary" />
-              <h3 className="font-semibold mb-2 text-primary">Crystal Clear Quality</h3>
+              <h3 className="font-semibold mb-2 text-primary font-bebas uppercase tracking-wide text-lg">CRYSTAL CLEAR QUALITY</h3>
               <p className="text-sm text-muted-foreground">HD streaming that would make your old buddy proud - no more fuzzy channels!</p>
             </CardContent>
           </Card>
@@ -99,7 +99,7 @@ const Index = () => {
           <Card className="text-center border-2 border-accent/20 shadow-lg hover:shadow-xl transition-all duration-300" style={{ boxShadow: 'var(--shadow-warm)' }}>
             <CardContent className="pt-6">
               <Shield className="h-12 w-12 mx-auto mb-4 text-primary" />
-              <h3 className="font-semibold mb-2 text-primary">Buddy's Protection</h3>
+              <h3 className="font-semibold mb-2 text-primary font-bebas uppercase tracking-wide text-lg">BUDDY'S PROTECTION</h3>
               <p className="text-sm text-muted-foreground">Your streaming buddy keeps you safe with top-notch security</p>
             </CardContent>
           </Card>
@@ -107,7 +107,7 @@ const Index = () => {
           <Card className="text-center border-2 border-accent/20 shadow-lg hover:shadow-xl transition-all duration-300" style={{ boxShadow: 'var(--shadow-warm)' }}>
             <CardContent className="pt-6">
               <Clock className="h-12 w-12 mx-auto mb-4 text-primary" />
-              <h3 className="font-semibold mb-2 text-primary">Lightning Fast Setup</h3>
+              <h3 className="font-semibold mb-2 text-primary font-bebas uppercase tracking-wide text-lg">LIGHTNING FAST SETUP</h3>
               <p className="text-sm text-muted-foreground">Your buddy delivers credentials faster than a vintage TV warms up!</p>
             </CardContent>
           </Card>
@@ -120,7 +120,7 @@ const Index = () => {
               ⭐ Buddy's Choice
             </Badge>
             <CardHeader className="text-center pb-8">
-              <CardTitle className="text-2xl text-primary-foreground font-serif">Buddy's Premium Package</CardTitle>
+              <CardTitle className="text-2xl text-primary-foreground font-bebas uppercase tracking-wider">BUDDY'S PREMIUM PACKAGE</CardTitle>
               <CardDescription className="text-primary-foreground/80">Everything your streaming buddy has to offer!</CardDescription>
               <div className="mt-4">
                 <span className="text-4xl font-bold text-primary-foreground">$9</span>
@@ -167,11 +167,11 @@ const Index = () => {
               
               <Button 
                 size="lg" 
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-lg py-6 shadow-lg transition-all duration-300 hover:shadow-xl" 
+                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bebas uppercase tracking-wider text-xl py-6 shadow-lg transition-all duration-300 hover:shadow-xl" 
                 onClick={handlePurchase}
                 disabled={loading}
               >
-                {loading ? "🔄 Your buddy is working..." : "🚀 Let's Go, Buddy!"}
+                {loading ? "🔄 YOUR BUDDY IS WORKING..." : "🚀 LET'S GO, BUDDY!"}
               </Button>
               
               <p className="text-xs text-muted-foreground text-center">
@@ -185,27 +185,27 @@ const Index = () => {
         <div className="text-center mt-16">
           <Card className="max-w-2xl mx-auto border-2 border-accent/20" style={{ boxShadow: 'var(--shadow-warm)' }}>
             <CardHeader>
-              <CardTitle className="text-primary font-serif text-2xl">How Your Buddy Works</CardTitle>
+              <CardTitle className="text-primary font-bebas uppercase tracking-wider text-3xl">HOW YOUR BUDDY WORKS</CardTitle>
             </CardHeader>
             <CardContent className="text-left space-y-6">
               <div className="flex items-start space-x-4">
                 <div className="bg-accent text-accent-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-md">1</div>
                 <div>
-                  <h4 className="font-semibold text-primary text-lg">💳 Pay Your Buddy</h4>
+                  <h4 className="font-semibold text-primary text-lg font-bebas uppercase tracking-wide">💳 PAY YOUR BUDDY</h4>
                   <p className="text-sm text-muted-foreground">Secure checkout with Stripe - your buddy keeps it safe and simple!</p>
                 </div>
               </div>
               <div className="flex items-start space-x-4">
                 <div className="bg-accent text-accent-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-md">2</div>
                 <div>
-                  <h4 className="font-semibold text-primary text-lg">⚡ Buddy Gets to Work</h4>
+                  <h4 className="font-semibold text-primary text-lg font-bebas uppercase tracking-wide">⚡ BUDDY GETS TO WORK</h4>
                   <p className="text-sm text-muted-foreground">Your subscription activates faster than your buddy can say "IPTV"!</p>
                 </div>
               </div>
               <div className="flex items-start space-x-4">
                 <div className="bg-accent text-accent-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-md">3</div>
                 <div>
-                  <h4 className="font-semibold text-primary text-lg">📧 Buddy Delivers</h4>
+                  <h4 className="font-semibold text-primary text-lg font-bebas uppercase tracking-wide">📧 BUDDY DELIVERS</h4>
                   <p className="text-sm text-muted-foreground">Your buddy sends username, password, and M3U link straight to your inbox - no waiting around!</p>
                 </div>
               </div>
