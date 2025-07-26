@@ -67,7 +67,7 @@ serve(async (req) => {
         logStep("Error updating order", orderError);
       }
 
-      // Create MegaOTT subscription
+      // Create MegaOTT subscription with hardcoded package ID and 1 connection
       const megaottResponse = await fetch("https://megaott.net/api/v1/subscriptions", {
         method: "POST",
         headers: {
@@ -78,8 +78,8 @@ serve(async (req) => {
         body: new URLSearchParams({
           type: "m3u",
           username: `user_${Date.now()}`, // Generate unique username
-          package_id: "4", // Default package - you can change this
-          max_connections: "1",
+          package_id: "4", // Hardcoded package ID
+          max_connections: "1", // Hardcoded to 1 connection
           template_id: "1",
           forced_country: "ALL",
           adult: "false",
@@ -105,11 +105,12 @@ serve(async (req) => {
         .insert({
           user_id: session.metadata?.user_id || null,
           stripe_payment_intent_id: session.payment_intent,
-          megaott_username: megaottData.username,
-          megaott_password: megaottData.password,
-          m3u_link: megaottData.dns_link,
-          package_name: megaottData.package?.name || "Fixed Package",
-          connections_count: megaottData.max_connections,
+          username: megaottData.username,
+          password: megaottData.password,
+          dns_link: megaottData.dns_link,
+          portal_link: megaottData.portal_link || null,
+          max_connections: 1, // Hardcoded to 1 connection
+          whatsapp: session.metadata?.whatsapp || null,
           status: "active",
           expires_at: megaottData.expiring_at,
         });
