@@ -123,23 +123,34 @@ serve(async (req) => {
 
       // Send confirmation email with IPTV credentials
       try {
-        const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+        const resendApiKey = Deno.env.get("RESEND_API_KEY");
+        logStep("DEBUG: Resend API Key check", { 
+          hasApiKey: !!resendApiKey,
+          keyLength: resendApiKey?.length || 0 
+        });
+
+        const resend = new Resend(resendApiKey);
         const recipientEmail = session.customer_details?.email || session.metadata?.email;
         
-        if (!recipientEmail) {
-          logStep("No email address found in session");
-          throw new Error("No email address found");
-        }
-
-        logStep("Sending confirmation email", { email: recipientEmail });
+        // TEMPORARY: Hardcoded test email
+        const testEmail = "trav.singletary@gmail.com";
+        
+        logStep("DEBUG: Email details before send", {
+          originalRecipient: recipientEmail,
+          testRecipient: testEmail,
+          username: megaottData.username,
+          password: megaottData.password,
+          dnsLink: megaottData.dns_link,
+          portalLink: megaottData.portal_link
+        });
 
         const emailResponse = await resend.emails.send({
-          from: "IPTV Service <onboarding@resend.dev>",
-          to: [recipientEmail],
-          subject: "Your IPTV Subscription is Ready!",
+          from: "onboarding@resend.dev",
+          to: [testEmail], // TEMPORARY: Using hardcoded test email
+          subject: "TEST: Your IPTV Subscription is Ready!",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #333; text-align: center;">Your IPTV Subscription is Active!</h1>
+              <h1 style="color: #333; text-align: center;">TEST EMAIL - Your IPTV Subscription is Active!</h1>
               
               <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h2 style="color: #495057; margin-top: 0;">Login Credentials:</h2>
@@ -169,17 +180,33 @@ serve(async (req) => {
               </div>
 
               <p style="text-align: center; color: #666; margin-top: 30px;">
-                If you have any questions, please don't hesitate to contact our support team.
+                This is a TEST EMAIL to debug Resend integration.
               </p>
             </div>
           `,
         });
 
-        logStep("Confirmation email sent successfully", { 
-          messageId: emailResponse.data?.id 
+        logStep("DEBUG: Resend API response", { 
+          success: emailResponse.data ? true : false,
+          messageId: emailResponse.data?.id,
+          error: emailResponse.error,
+          fullResponse: emailResponse
         });
+
+        if (emailResponse.error) {
+          logStep("Resend API error", emailResponse.error);
+          throw new Error(`Resend error: ${JSON.stringify(emailResponse.error)}`);
+        } else {
+          logStep("Confirmation email sent successfully", { 
+            messageId: emailResponse.data?.id,
+            recipient: testEmail
+          });
+        }
       } catch (emailError) {
-        logStep("Email sending error", emailError);
+        logStep("Email sending error", { 
+          error: emailError,
+          message: emailError instanceof Error ? emailError.message : String(emailError)
+        });
         // Don't throw error - subscription is still created successfully
       }
 
