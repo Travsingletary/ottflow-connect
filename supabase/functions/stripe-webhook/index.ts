@@ -13,6 +13,107 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
+// Function to send SMS notification via Twilio
+const sendSMSNotification = async (orderDetails: any) => {
+  try {
+    const twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+    const twilioAuthToken = Deno.env.get("TWILIO_AUTH_TOKEN");
+    const twilioPhoneNumber = Deno.env.get("TWILIO_PHONE_NUMBER");
+    const businessPhoneNumber = Deno.env.get("BUSINESS_PHONE_NUMBER");
+
+    if (!twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber || !businessPhoneNumber) {
+      logStep("SMS skipped - missing Twilio configuration");
+      return;
+    }
+
+    const message = `🎉 NEW IPTV PURCHASE!
+Customer: ${orderDetails.customerEmail}
+Amount: $${orderDetails.amount}
+Order ID: ${orderDetails.orderId}
+Time: ${new Date().toLocaleString()}
+
+Please send IPTV credentials manually.`;
+
+    const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${btoa(`${twilioAccountSid}:${twilioAuthToken}`)}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        From: twilioPhoneNumber,
+        To: businessPhoneNumber,
+        Body: message,
+      }),
+    });
+
+    if (response.ok) {
+      logStep("SMS notification sent successfully");
+    } else {
+      logStep("SMS notification failed", { status: response.status });
+    }
+  } catch (error) {
+    logStep("SMS notification error", { error: error.message });
+  }
+};
+
+// Function to send email notification to business owner
+const sendBusinessNotification = async (orderDetails: any) => {
+  try {
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const businessEmail = Deno.env.get("BUSINESS_EMAIL") || "trav.singletary@gmail.com";
+
+    if (!resendApiKey) {
+      logStep("Email notification skipped - missing Resend API key");
+      return;
+    }
+
+    const resend = new Resend(resendApiKey);
+
+    const emailResponse = await resend.emails.send({
+      from: "notifications@resend.dev",
+      to: [businessEmail],
+      subject: "🎉 New IPTV Purchase - Manual Action Required",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #333; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px;">
+            New IPTV Purchase!
+          </h1>
+          
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h2 style="color: #495057; margin-top: 0;">Order Details:</h2>
+            <p><strong>Customer Email:</strong> ${orderDetails.customerEmail}</p>
+            <p><strong>Amount:</strong> $${orderDetails.amount}</p>
+            <p><strong>Payment ID:</strong> ${orderDetails.paymentIntentId}</p>
+            <p><strong>Order ID:</strong> ${orderDetails.orderId}</p>
+            <p><strong>Purchase Time:</strong> ${new Date().toLocaleString()}</p>
+          </div>
+
+          <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #856404; margin-top: 0;">⚠️ Action Required</h3>
+            <p style="color: #856404; margin-bottom: 0;">Please manually send IPTV credentials to the customer at: <strong>${orderDetails.customerEmail}</strong></p>
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <p style="color: #666;">This is an automated notification from your IPTV service.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (emailResponse.error) {
+      logStep("Business email notification failed", emailResponse.error);
+    } else {
+      logStep("Business email notification sent successfully", { 
+        messageId: emailResponse.data?.id,
+        recipient: businessEmail
+      });
+    }
+  } catch (error) {
+    logStep("Business email notification error", { error: error.message });
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -51,7 +152,6 @@ serve(async (req) => {
     
     logStep("Event type received", { type: event.type });
 
-    // Handle both checkout.session.completed and payment_intent.succeeded for testing
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       logStep("Processing checkout session", { sessionId: session.id });
@@ -69,202 +169,24 @@ serve(async (req) => {
         logStep("Error updating order", orderError);
       }
 
-      // Create MegaOTT subscription with hardcoded package ID and 1 connection
-      const megaottResponse = await fetch("https://megaott.net/api/v1/subscriptions", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Authorization": `Bearer ${Deno.env.get("MEGAOTT_API_TOKEN")}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          type: "m3u",
-          username: `user_${Date.now()}`, // Generate unique username
-          package_id: "4", // Hardcoded package ID
-          max_connections: "1", // Hardcoded to 1 connection
-          template_id: "1",
-          forced_country: "ALL",
-          adult: "false",
-          enable_vpn: "true",
-          paid: "true",
-          note: `Stripe Payment: ${session.id}`,
-        }),
-      });
-
-      if (!megaottResponse.ok) {
-        throw new Error(`MegaOTT API error: ${megaottResponse.status}`);
-      }
-
-      const megaottData = await megaottResponse.json();
-      logStep("MegaOTT subscription created", { 
-        id: megaottData.id, 
-        username: megaottData.username 
-      });
-
-      // Store subscription details in database
-      const { error: subError } = await supabase
-        .from("subscriptions")
-        .insert({
-          user_id: session.metadata?.user_id || null,
-          stripe_payment_intent_id: session.payment_intent,
-          username: megaottData.username,
-          password: megaottData.password,
-          dns_link: megaottData.dns_link,
-          portal_link: megaottData.portal_link || null,
-          max_connections: 1, // Hardcoded to 1 connection
-          whatsapp: session.metadata?.whatsapp || null,
-          status: "active",
-          expires_at: megaottData.expiring_at,
-        });
-
-      if (subError) {
-        logStep("Error storing subscription", subError);
-        throw new Error("Failed to store subscription details");
-      }
-
-      // Call send-confirmation-email function
-      logStep("Starting email sending process via send-confirmation-email function");
-      
-      try {
-        const recipientEmail = session.customer_details?.email || session.metadata?.email || "trav.singletary@gmail.com";
-        
-        const emailPayload = {
-          email: recipientEmail,
-          username: megaottData.username,
-          password: megaottData.password,
-          m3u_link: megaottData.dns_link,
-          package_name: "Premium IPTV Package",
-          expires_at: megaottData.expiring_at
-        };
-
-        console.log("Sending confirmation email with payload:", emailPayload);
-        logStep("DEBUG: Email payload being sent to send-confirmation-email", emailPayload);
-
-        const emailResponse = await supabase.functions.invoke('send-confirmation-email', {
-          body: emailPayload
-        });
-
-        console.log("Email response:", emailResponse);
-        
-        if (emailResponse.error) {
-          console.error("Failed to send confirmation email:", emailResponse.error);
-        }
-
-        logStep("DEBUG: send-confirmation-email function response", { 
-          success: !emailResponse.error,
-          data: emailResponse.data,
-          error: emailResponse.error
-        });
-
-        if (emailResponse.error) {
-          logStep("send-confirmation-email function error", emailResponse.error);
-          throw new Error(`Email function error: ${JSON.stringify(emailResponse.error)}`);
-        } else {
-          logStep("Confirmation email sent successfully via function", { 
-            recipient: recipientEmail,
-            success: true,
-            response: emailResponse.data
-          });
-        }
-      } catch (emailError) {
-        logStep("Email sending error caught", { 
-          error: emailError,
-          message: emailError instanceof Error ? emailError.message : String(emailError),
-          stack: emailError instanceof Error ? emailError.stack : undefined
-        });
-        // Don't throw error - subscription is still created successfully
-      }
-
-      logStep("Email sending process completed");
-    } else if (event.type === "payment_intent.succeeded") {
-      // Handle payment_intent.succeeded for testing
-      logStep("Processing payment_intent.succeeded event for testing");
-      
-      const paymentIntent = event.data.object;
-      logStep("Payment intent details", { 
-        id: paymentIntent.id,
-        amount: paymentIntent.amount,
-        status: paymentIntent.status
-      });
-
-      // For testing purposes, create a mock IPTV subscription
-      const mockCredentials = {
-        username: `test_user_${Date.now()}`,
-        password: `test_pass_${Math.random().toString(36).substr(2, 8)}`,
-        dns_link: "http://test.megaott.net/playlist.m3u8",
-        portal_link: "http://test.megaott.net/portal"
+      // Prepare order details for notifications
+      const orderDetails = {
+        customerEmail: session.customer_details?.email || session.metadata?.email || "Unknown",
+        amount: (session.amount_total / 100).toFixed(2),
+        paymentIntentId: session.payment_intent,
+        orderId: session.id,
       };
 
-      logStep("Mock credentials created for testing", mockCredentials);
+      logStep("Sending business notifications", orderDetails);
 
-      // Send test email
-      try {
-        const resendApiKey = Deno.env.get("RESEND_API_KEY");
-        logStep("DEBUG: Resend API Key check for payment_intent test", { 
-          hasApiKey: !!resendApiKey,
-          keyLength: resendApiKey?.length || 0,
-          keyPrefix: resendApiKey ? resendApiKey.substring(0, 8) + "..." : "none"
-        });
+      // Send business notifications (email and SMS)
+      await Promise.all([
+        sendBusinessNotification(orderDetails),
+        sendSMSNotification(orderDetails)
+      ]);
 
-        if (!resendApiKey) {
-          throw new Error("RESEND_API_KEY environment variable is not set");
-        }
-
-        const resend = new Resend(resendApiKey);
-        const testEmail = "trav.singletary@gmail.com";
-        
-        logStep("DEBUG: About to send test email for payment_intent", {
-          recipient: testEmail,
-          credentials: mockCredentials
-        });
-
-        const emailResponse = await resend.emails.send({
-          from: "onboarding@resend.dev",
-          to: [testEmail],
-          subject: "TEST: Payment Intent Succeeded - IPTV Test",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #333; text-align: center;">TEST: Payment Intent Succeeded</h1>
-              
-              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h2 style="color: #495057; margin-top: 0;">Test IPTV Credentials:</h2>
-                <p><strong>Username:</strong> ${mockCredentials.username}</p>
-                <p><strong>Password:</strong> ${mockCredentials.password}</p>
-                <p><strong>M3U Link:</strong> ${mockCredentials.dns_link}</p>
-                <p><strong>Portal Link:</strong> ${mockCredentials.portal_link}</p>
-              </div>
-
-              <p style="text-align: center; color: #666; margin-top: 30px;">
-                This is a TEST EMAIL for payment_intent.succeeded event.<br>
-                Payment Intent ID: ${paymentIntent.id}
-              </p>
-            </div>
-          `,
-        });
-
-        logStep("DEBUG: Resend API response for payment_intent test", { 
-          success: !!emailResponse.data,
-          messageId: emailResponse.data?.id,
-          error: emailResponse.error,
-          fullResponse: emailResponse
-        });
-
-        if (emailResponse.error) {
-          logStep("Resend API error in payment_intent test", emailResponse.error);
-        } else {
-          logStep("Test email sent successfully for payment_intent", { 
-            messageId: emailResponse.data?.id,
-            recipient: testEmail
-          });
-        }
-      } catch (emailError) {
-        logStep("Email sending error in payment_intent test", { 
-          error: emailError,
-          message: emailError instanceof Error ? emailError.message : String(emailError)
-        });
-      }
-
-      logStep("Payment intent test processing completed");
+      logStep("Order processing completed - manual credentials required");
+      
     } else {
       logStep("Unhandled event type", { type: event.type });
     }
