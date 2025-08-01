@@ -11,13 +11,14 @@ import { Tv, Wifi, Shield, Clock, Check } from "lucide-react";
 const Index = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
-  const [selectedPlan, setSelectedPlan] = useState<'1stream' | '2stream' | '3stream'>('1stream');
+  const [selectedPlan, setSelectedPlan] = useState<'trial' | '1stream' | '2stream' | '3stream'>('trial');
   const { toast } = useToast();
 
   const pricingPlans = {
-    '1stream': { price: 2000, display: 20, streams: 1, label: "Single Stream" },
-    '2stream': { price: 3500, display: 35, streams: 2, label: "Dual Stream" },
-    '3stream': { price: 4500, display: 45, streams: 3, label: "Triple Stream" }
+    'trial': { price: 0, display: 0, streams: 1, label: "24-Hour Free Trial", duration: "24 hours" },
+    '1stream': { price: 2000, display: 20, streams: 1, label: "Single Stream", duration: "month" },
+    '2stream': { price: 3500, display: 35, streams: 2, label: "Dual Stream", duration: "month" },
+    '3stream': { price: 4500, display: 45, streams: 3, label: "Triple Stream", duration: "month" }
   };
 
   const handlePurchase = async () => {
@@ -128,7 +129,55 @@ const Index = () => {
             CHOOSE YOUR BUDDY PLAN
           </h2>
           
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-4 gap-6">
+            {/* Free Trial */}
+            <Card 
+              className={`relative border-2 cursor-pointer transition-all duration-300 ${
+                selectedPlan === 'trial' 
+                ? 'border-accent ring-2 ring-accent/50 shadow-xl' 
+                : 'border-muted hover:border-accent/50'
+              }`}
+              onClick={() => setSelectedPlan('trial')}
+              style={{ 
+                boxShadow: selectedPlan === 'trial' ? 'var(--shadow-warm)' : undefined,
+                background: selectedPlan === 'trial' ? 'var(--gradient-vintage)' : undefined 
+              }}
+            >
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white font-bold">
+                🎉 FREE
+              </Badge>
+              {selectedPlan === 'trial' && (
+                <Badge className="absolute -top-3 right-4 bg-accent text-accent-foreground font-bold">
+                  Selected
+                </Badge>
+              )}
+              <CardHeader className="text-center">
+                <CardTitle className="text-xl text-primary font-bebas uppercase tracking-wider">BUDDY TRIAL</CardTitle>
+                <CardDescription>Try before you buy!</CardDescription>
+                <div className="mt-4">
+                  <span className="text-3xl font-bold text-green-600">FREE</span>
+                  <span className="text-sm text-muted-foreground ml-1">/24hrs</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  1 Stream Connection
+                </div>
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  M3U Playlist Access
+                </div>
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  24 Hour Access
+                </div>
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  Email Support
+                </div>
+              </CardContent>
+            </Card>
             {/* 1 Stream Plan */}
             <Card 
               className={`relative border-2 cursor-pointer transition-all duration-300 ${
@@ -181,8 +230,7 @@ const Index = () => {
               }`}
               onClick={() => setSelectedPlan('2stream')}
               style={{ 
-                boxShadow: selectedPlan === '2stream' ? 'var(--shadow-warm)' : undefined,
-                background: selectedPlan === '2stream' ? 'var(--gradient-vintage)' : undefined 
+                boxShadow: selectedPlan === '2stream' ? 'var(--shadow-warm)' : undefined
               }}
             >
               <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground font-bold">
@@ -273,8 +321,17 @@ const Index = () => {
                   {pricingPlans[selectedPlan].label}
                 </CardTitle>
                 <div className="mt-2">
-                  <span className="text-4xl font-bold text-primary">${pricingPlans[selectedPlan].display}</span>
-                  <span className="text-sm text-muted-foreground ml-1">/month</span>
+                  {selectedPlan === 'trial' ? (
+                    <>
+                      <span className="text-4xl font-bold text-green-600">FREE</span>
+                      <span className="text-sm text-muted-foreground ml-1">/24 hours</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-bold text-primary">${pricingPlans[selectedPlan].display}</span>
+                      <span className="text-sm text-muted-foreground ml-1">/month</span>
+                    </>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -297,7 +354,9 @@ const Index = () => {
                   onClick={handlePurchase}
                   disabled={loading}
                 >
-                  {loading ? "🔄 YOUR BUDDY IS WORKING..." : `🚀 GET ${pricingPlans[selectedPlan].streams} STREAM${pricingPlans[selectedPlan].streams > 1 ? 'S' : ''} NOW!`}
+                  {loading ? "🔄 YOUR BUDDY IS WORKING..." : 
+                   selectedPlan === 'trial' ? "🎉 START FREE TRIAL!" : 
+                   `🚀 GET ${pricingPlans[selectedPlan].streams} STREAM${pricingPlans[selectedPlan].streams > 1 ? 'S' : ''} NOW!`}
                 </Button>
                 
                 <p className="text-xs text-muted-foreground text-center">
