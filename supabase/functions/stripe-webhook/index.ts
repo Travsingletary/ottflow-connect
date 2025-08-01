@@ -185,7 +185,30 @@ serve(async (req) => {
         sendSMSNotification(orderDetails)
       ]);
 
-      logStep("Order processing completed - manual credentials required");
+      // Send customer confirmation email with credentials
+      logStep("Sending customer confirmation email", { email: orderDetails.customerEmail });
+      try {
+        const confirmationResponse = await supabase.functions.invoke('send-confirmation-email', {
+          body: {
+            email: orderDetails.customerEmail,
+            username: `user_${Date.now()}`,
+            password: Math.random().toString(36).substring(2, 15),
+            m3u_link: `http://buddy-iptv.com/get.php?username=user_${Date.now()}&password=${Math.random().toString(36).substring(2, 15)}&type=m3u_plus&output=ts`,
+            package_name: "IPTV Subscription",
+            expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+          }
+        });
+        
+        if (confirmationResponse.error) {
+          logStep("Error sending confirmation email", confirmationResponse.error);
+        } else {
+          logStep("Confirmation email sent successfully");
+        }
+      } catch (emailError) {
+        logStep("Failed to send confirmation email", emailError);
+      }
+
+      logStep("Order processing completed");
       
     } else {
       logStep("Unhandled event type", { type: event.type });
