@@ -59,10 +59,10 @@ const Success = () => {
               <div className="bg-muted/50 p-6 rounded-lg">
                 <div className="flex items-center justify-center mb-4">
                   <Mail className="w-6 h-6 text-primary mr-2" />
-                  <h3 className="font-semibold">Check Your Email</h3>
+                  <h3 className="font-semibold">Your Credentials Are On The Way!</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  We've sent your IPTV credentials to your email address. This includes:
+                <p className="text-sm text-muted-foreground mb-4">
+                  <strong>You will receive your IPTV credentials within 2-3 hours.</strong> We'll send them to your email address and they will include:
                 </p>
                 <ul className="mt-3 space-y-1 text-sm">
                   <li>• Your unique username and password</li>
