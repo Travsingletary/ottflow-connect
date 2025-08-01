@@ -6,12 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Tv, Wifi, Shield, Clock } from "lucide-react";
+import { Tv, Wifi, Shield, Clock, Check } from "lucide-react";
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<'1stream' | '2stream' | '3stream'>('1stream');
   const { toast } = useToast();
+
+  const pricingPlans = {
+    '1stream': { price: 2000, display: 20, streams: 1, label: "Single Stream" },
+    '2stream': { price: 3500, display: 35, streams: 2, label: "Dual Stream" },
+    '3stream': { price: 4500, display: 45, streams: 3, label: "Triple Stream" }
+  };
 
   const handlePurchase = async () => {
     if (!email) {
@@ -26,10 +33,12 @@ const Index = () => {
     try {
       setLoading(true);
       
+      const plan = pricingPlans[selectedPlan];
+      
       // Create checkout session
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
-          amount: 999, // $9.99 in cents
+          amount: plan.price,
           currency: 'usd',
           email: email
         }
@@ -113,72 +122,190 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Pricing Card */}
-        <div className="max-w-md mx-auto">
-          <Card className="relative border-2 border-primary/20" style={{ boxShadow: 'var(--shadow-warm)', background: 'var(--gradient-vintage)' }}>
-            <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-accent text-accent-foreground font-bold">
-              ⭐ Buddy's Choice
-            </Badge>
-            <CardHeader className="text-center pb-8">
-              <CardTitle className="text-2xl text-primary-foreground font-bebas uppercase tracking-wider">BUDDY'S PREMIUM PACKAGE</CardTitle>
-              <CardDescription className="text-primary-foreground/80">Everything your streaming buddy has to offer!</CardDescription>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-primary-foreground">$9</span>
-                <span className="text-xl text-primary-foreground/80">.99</span>
-                <span className="text-sm text-primary-foreground/70 ml-1">/month</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4 bg-card rounded-b-lg p-6 border-t border-primary-foreground/20">
-              <div className="space-y-3">
-                <div className="flex items-center text-sm text-card-foreground">
-                  <div className="w-2 h-2 bg-accent rounded-full mr-3"></div>
-                  📺 Your buddy's M3U playlist
+        {/* Pricing Plans */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <h2 className="text-4xl font-bold text-center text-primary mb-8 font-bebas uppercase tracking-wider">
+            CHOOSE YOUR BUDDY PLAN
+          </h2>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* 1 Stream Plan */}
+            <Card 
+              className={`relative border-2 cursor-pointer transition-all duration-300 ${
+                selectedPlan === '1stream' 
+                ? 'border-accent ring-2 ring-accent/50 shadow-xl' 
+                : 'border-muted hover:border-accent/50'
+              }`}
+              onClick={() => setSelectedPlan('1stream')}
+              style={{ boxShadow: selectedPlan === '1stream' ? 'var(--shadow-warm)' : undefined }}
+            >
+              {selectedPlan === '1stream' && (
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-accent text-accent-foreground font-bold">
+                  Selected
+                </Badge>
+              )}
+              <CardHeader className="text-center">
+                <CardTitle className="text-xl text-primary font-bebas uppercase tracking-wider">BUDDY BASIC</CardTitle>
+                <CardDescription>Perfect for solo streaming</CardDescription>
+                <div className="mt-4">
+                  <span className="text-3xl font-bold text-primary">$20</span>
+                  <span className="text-sm text-muted-foreground ml-1">/month</span>
                 </div>
-                <div className="flex items-center text-sm text-card-foreground">
-                  <div className="w-2 h-2 bg-accent rounded-full mr-3"></div>
-                  🔗 1 connection (share with your best buddy!)
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  1 Stream Connection
                 </div>
-                <div className="flex items-center text-sm text-card-foreground">
-                  <div className="w-2 h-2 bg-accent rounded-full mr-3"></div>
-                  🛡️ VPN support (buddy's got your back)
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  M3U Playlist Access
                 </div>
-                <div className="flex items-center text-sm text-card-foreground">
-                  <div className="w-2 h-2 bg-accent rounded-full mr-3"></div>
-                  ⚡ Instant buddy delivery
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  VPN Support
                 </div>
-                <div className="flex items-center text-sm text-card-foreground">
-                  <div className="w-2 h-2 bg-accent rounded-full mr-3"></div>
-                  📧 Buddy support via email
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  Email Support
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-card-foreground font-semibold">Email Address (where your buddy sends the goods)</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email - your buddy needs to know where to send the goods!"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="border-2 border-accent/30 focus:border-accent"
-                />
-              </div>
-              
-              <Button 
-                size="lg" 
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bebas uppercase tracking-wider text-xl py-6 shadow-lg transition-all duration-300 hover:shadow-xl" 
-                onClick={handlePurchase}
-                disabled={loading}
-              >
-                {loading ? "🔄 YOUR BUDDY IS WORKING..." : "🚀 LET'S GO, BUDDY!"}
-              </Button>
-              
-              <p className="text-xs text-muted-foreground text-center">
-                🔒 Secure payment - your buddy trusts Stripe
-              </p>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* 2 Stream Plan */}
+            <Card 
+              className={`relative border-2 cursor-pointer transition-all duration-300 ${
+                selectedPlan === '2stream' 
+                ? 'border-accent ring-2 ring-accent/50 shadow-xl' 
+                : 'border-muted hover:border-accent/50'
+              }`}
+              onClick={() => setSelectedPlan('2stream')}
+              style={{ 
+                boxShadow: selectedPlan === '2stream' ? 'var(--shadow-warm)' : undefined,
+                background: selectedPlan === '2stream' ? 'var(--gradient-vintage)' : undefined 
+              }}
+            >
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground font-bold">
+                ⭐ Popular
+              </Badge>
+              {selectedPlan === '2stream' && (
+                <Badge className="absolute -top-3 right-4 bg-accent text-accent-foreground font-bold">
+                  Selected
+                </Badge>
+              )}
+              <CardHeader className="text-center">
+                <CardTitle className="text-xl text-primary font-bebas uppercase tracking-wider">BUDDY PLUS</CardTitle>
+                <CardDescription>Great for couples or families</CardDescription>
+                <div className="mt-4">
+                  <span className="text-3xl font-bold text-primary">$35</span>
+                  <span className="text-sm text-muted-foreground ml-1">/month</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  2 Stream Connections
+                </div>
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  M3U Playlist Access
+                </div>
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  VPN Support
+                </div>
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  Priority Email Support
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 3 Stream Plan */}
+            <Card 
+              className={`relative border-2 cursor-pointer transition-all duration-300 ${
+                selectedPlan === '3stream' 
+                ? 'border-accent ring-2 ring-accent/50 shadow-xl' 
+                : 'border-muted hover:border-accent/50'
+              }`}
+              onClick={() => setSelectedPlan('3stream')}
+              style={{ boxShadow: selectedPlan === '3stream' ? 'var(--shadow-warm)' : undefined }}
+            >
+              {selectedPlan === '3stream' && (
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-accent text-accent-foreground font-bold">
+                  Selected
+                </Badge>
+              )}
+              <CardHeader className="text-center">
+                <CardTitle className="text-xl text-primary font-bebas uppercase tracking-wider">BUDDY PREMIUM</CardTitle>
+                <CardDescription>Perfect for larger households</CardDescription>
+                <div className="mt-4">
+                  <span className="text-3xl font-bold text-primary">$45</span>
+                  <span className="text-sm text-muted-foreground ml-1">/month</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  3 Stream Connections
+                </div>
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  M3U Playlist Access
+                </div>
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  VPN Support
+                </div>
+                <div className="flex items-center text-sm">
+                  <Check className="w-4 h-4 text-accent mr-2" />
+                  Premium Email Support
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Purchase Section */}
+          <div className="max-w-md mx-auto mt-12">
+            <Card className="border-2 border-accent/20" style={{ boxShadow: 'var(--shadow-warm)' }}>
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl text-primary font-bebas uppercase tracking-wider">
+                  {pricingPlans[selectedPlan].label}
+                </CardTitle>
+                <div className="mt-2">
+                  <span className="text-4xl font-bold text-primary">${pricingPlans[selectedPlan].display}</span>
+                  <span className="text-sm text-muted-foreground ml-1">/month</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-card-foreground font-semibold">Email Address (where your buddy sends the goods)</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email - your buddy needs to know where to send the goods!"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="border-2 border-accent/30 focus:border-accent"
+                  />
+                </div>
+                
+                <Button 
+                  size="lg" 
+                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bebas uppercase tracking-wider text-xl py-6 shadow-lg transition-all duration-300 hover:shadow-xl" 
+                  onClick={handlePurchase}
+                  disabled={loading}
+                >
+                  {loading ? "🔄 YOUR BUDDY IS WORKING..." : `🚀 GET ${pricingPlans[selectedPlan].streams} STREAM${pricingPlans[selectedPlan].streams > 1 ? 'S' : ''} NOW!`}
+                </Button>
+                
+                <p className="text-xs text-muted-foreground text-center">
+                  🔒 Secure payment - your buddy trusts Stripe
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Info Section */}
